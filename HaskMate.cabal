@@ -10,13 +10,24 @@ extra-doc-files: README.md
 common warnings
     ghc-options: -Wall
 
-executable HaskMate
+library
     import:           warnings
-    main-is:          Main.hs
-    other-modules:    Piece
+    exposed-modules:  Piece
                     , Board
+                    , GameState
+                    , Move
+                    , Position
     build-depends:    base >=4.18.3.0
                     , gloss >=1.13
                     , containers >=0.6
-    hs-source-dirs:   app, src
+    hs-source-dirs:   src
+    default-language: Haskell2010
+
+executable HaskMate
+    import:           warnings
+    main-is:          Main.hs
+    build-depends:    base >=4.18.3.0
+                    , HaskMate
+                    , containers >=0.6
+    hs-source-dirs:   app
     default-language: Haskell2010
