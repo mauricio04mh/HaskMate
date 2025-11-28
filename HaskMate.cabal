@@ -1,0 +1,22 @@
+cabal-version:   3.8
+name:            HaskMate
+version:         0.1.0.0
+license:         NONE
+author:          mharrymh
+maintainer:      149264867+mharrymh@users.noreply.github.com
+build-type:      Simple
+extra-doc-files: README.md
+
+common warnings
+    ghc-options: -Wall
+
+executable HaskMate
+    import:           warnings
+    main-is:          Main.hs
+    other-modules:    Piece
+                    , Board
+    build-depends:    base >=4.18.3.0
+                    , gloss >=1.13
+                    , containers >=0.6
+    hs-source-dirs:   app, src
+    default-language: Haskell2010
