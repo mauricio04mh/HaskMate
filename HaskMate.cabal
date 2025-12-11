@@ -13,13 +13,12 @@ common warnings
 library
     import:           warnings
     exposed-modules:  Piece
-                    , Board
+                    , Board.Core
                     , Board.Query
                     , GameState
                     , Move
                     , Position
-    other-modules:    Board.Board
-                    , GameState.Types
+    other-modules:    GameState.Types
                     , GameState.Validation
                     , GameState.MoveGen
                     , GameState.StateUpdate

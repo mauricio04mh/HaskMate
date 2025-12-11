@@ -6,7 +6,7 @@ module GameState.Types
   )
 where
 
-import Board (Board, CastlingRights, emptyBoard)
+import Board.Core (Board, CastlingRights, emptyBoard)
 import Piece (Color (Black, White))
 import Position (Position)
 

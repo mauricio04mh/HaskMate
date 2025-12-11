@@ -5,7 +5,7 @@ where
 
 import Data.Maybe (fromMaybe)
 
-import Board (Board, cellPiece, cellPosition)
+import Board.Core (Board, cellPiece, cellPosition)
 import GameState (gsBoard)
 import Piece (Color (..), Piece (..), PieceType (..))
 import Graphics.Gloss

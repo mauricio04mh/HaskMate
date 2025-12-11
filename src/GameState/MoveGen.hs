@@ -11,7 +11,7 @@ where
 
 import Data.Maybe (maybeToList)
 
-import Board (Board, CastlingRights, cellPiece, cellPosition)
+import Board.Core (Board, CastlingRights, cellPiece, cellPosition)
 import Board.Query (boardPieceAt)
 import Move (Move (..))
 import Piece (Color, Piece (..), PieceType (..), getPieceColor, getPieceType)

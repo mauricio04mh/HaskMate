@@ -7,7 +7,7 @@ module Board.Query
   )
 where
 
-import Board (Board, Cell)
+import Board.Core (Board, Cell)
 import Piece (Piece)
 import Position (File (..), Position (..), Rank (..))
 

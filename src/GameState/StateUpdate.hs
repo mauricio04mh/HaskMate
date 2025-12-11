@@ -9,7 +9,7 @@ where
 import Control.Monad (guard)
 import Data.Maybe (isJust)
 
-import Board (Board, CastlingRights)
+import Board.Core (Board, CastlingRights)
 import Board.Query (boardPieceAt, clearCellAt, setPieceAt)
 import Move (Move (..))
 import Piece (Color, Piece (..), PieceType (..), getPieceColor, getPieceType)

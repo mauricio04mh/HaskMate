@@ -1,4 +1,4 @@
-module Board.Board where
+module Board.Core where
 
 import Piece (Color (Black, White), Piece (..), PieceType (..))
 import Position (File (..), Position (..), Rank (..))
