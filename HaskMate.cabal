@@ -18,6 +18,10 @@ library
                     , GameState
                     , Move
                     , Position
+    other-modules:    GameState.Types
+                    , GameState.Validation
+                    , GameState.MoveGen
+                    , GameState.StateUpdate
     build-depends:    base >=4.18.3.0
                     , gloss >=1.13
                     , containers >=0.6
