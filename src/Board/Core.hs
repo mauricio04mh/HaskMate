@@ -1,4 +1,4 @@
-module Board where
+module Board.Core where
 
 import Piece (Color (Black, White), Piece (..), PieceType (..))
 import Position (File (..), Position (..), Rank (..))
@@ -6,7 +6,7 @@ import Position (File (..), Position (..), Rank (..))
 type Board = [[Cell]]
 
 data SquareColor = Light | Dark
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord)
 
 data CastlingRights = CastlingRights
   { whiteKingside :: Bool,
@@ -14,14 +14,14 @@ data CastlingRights = CastlingRights
     blackKingside :: Bool,
     blackQueenside :: Bool
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord)
 
 data Cell = Cell
   { cellPosition :: Position,
     cellPiece :: Maybe Piece,
     cellColor :: SquareColor
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord)
 
 emptyBoard :: Board
 emptyBoard =

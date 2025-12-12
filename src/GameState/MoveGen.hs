@@ -11,15 +11,16 @@ where
 
 import Data.Maybe (maybeToList)
 
-import Board (Board, CastlingRights, cellPiece, cellPosition)
+import Board.Core (Board, CastlingRights (..), cellPiece, cellPosition)
 import Board.Query (boardPieceAt)
 import Move (Move (..))
-import Piece (Color, Piece (..), PieceType (..), getPieceColor, getPieceType)
+import Piece (Color (Black, White), Piece (..), PieceType (..), getPieceColor, getPieceType)
 import Position (File (..), Position (..), Rank (..))
 
 import GameState.Types (GameState (..), toggleColor)
 import GameState.Validation
   ( bishopDirections,
+    boardIsInCheck,
     fileIndex,
     isSquareUnderAttack,
     kingOffsets,
