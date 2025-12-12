@@ -3,19 +3,22 @@ module GameState.StateUpdate
     isLegalMove,
     hasLegalMoves,
     determineResult,
+    declareDrawByAgreement,
   )
 where
 
 import Control.Monad (guard)
 import Data.Maybe (isJust)
 
-import Board.Core (Board, CastlingRights)
+import qualified Data.Map.Strict as Map
+
+import Board.Core (Board, CastlingRights (..))
 import Board.Query (boardPieceAt, clearCellAt, setPieceAt)
 import Move (Move (..))
-import Piece (Color, Piece (..), PieceType (..), getPieceColor, getPieceType)
+import Piece (Color (Black, White), Piece (..), PieceType (..), getPieceColor, getPieceType)
 import Position (File (..), Position (..), Rank (..))
 
-import GameState.Types (GameState (..), Result (..), toggleColor)
+import GameState.Types (GameState (..), PositionKey, Result (..), positionKey, toggleColor)
 import GameState.Validation (boardIsInCheck, fileIndex, rankIndex)
 import GameState.MoveGen
   ( piecePositions,
@@ -43,6 +46,8 @@ applyMove gs move = do
         updateCastlingRights (gsCastlingRights gs) movingPiece (fromPos move) (toPos move) destPiece
       nextColor = toggleColor (gsActiveColor gs)
       nextEnPassantTarget = determineEnPassantTarget movingPiece (fromPos move) (toPos move)
+      snapshotKey = positionKey nextBoard nextColor nextCastling nextEnPassantTarget
+      (updatedCounts, repetitionCount) = incrementPositionCount (gsPositionCounts gs) snapshotKey
       baseState =
         gs
           { gsBoard = nextBoard,
@@ -51,9 +56,10 @@ applyMove gs move = do
             gsEnPassantTarget = nextEnPassantTarget,
             gsHalfmoveClock = nextHalfmove,
             gsFullmoveNumber = nextFullmove,
+            gsPositionCounts = updatedCounts,
             gsResult = Ongoing
           }
-      nextResult = determineResult baseState nextBoard (gsActiveColor gs) nextColor nextHalfmove
+      nextResult = determineResult baseState nextBoard (gsActiveColor gs) nextColor nextHalfmove repetitionCount
   pure baseState {gsResult = nextResult}
 
 simulateLegalMove :: GameState -> Move -> Maybe (Board, Piece, Maybe Piece)
@@ -100,10 +106,11 @@ hasLegalMoves gs color =
         )
         (piecePositions board color)
 
-determineResult :: GameState -> Board -> Color -> Color -> Int -> Result
-determineResult state nextBoard moverColor nextColor nextHalfmove
+determineResult :: GameState -> Board -> Color -> Color -> Int -> Int -> Result
+determineResult state nextBoard moverColor nextColor nextHalfmove repetitionCount
   | not opponentHasMoves && opponentInCheck = Checkmate moverColor
   | not opponentHasMoves = Stalemate
+  | repetitionCount >= 3 = DrawByRepetition
   | nextHalfmove >= 100 = DrawBy50Moves
   | otherwise = Ongoing
   where
@@ -128,11 +135,27 @@ isCastlingMove piece from to =
 moveCastlingRook :: Board -> Piece -> Position -> Position -> Board
 moveCastlingRook board piece from to =
   case fileIndex (posFile to) - fileIndex (posFile from) of
-    2 -> moveRook board color (rookStartSquare color Kingside) (rookDestinationSquare color Kingside)
-    -2 -> moveRook board color (rookStartSquare color Queenside) (rookDestinationSquare color Queenside)
+    2 -> moveRook board color (rookStart color True) (rookDestination color True)
+    -2 -> moveRook board color (rookStart color False) (rookDestination color False)
     _ -> board
   where
     color = getPieceColor piece
+
+rookStart :: Color -> Bool -> Position
+rookStart color kingside =
+  Position
+    (File (if kingside then 8 else 1))
+    (Rank (kingRank color))
+
+rookDestination :: Color -> Bool -> Position
+rookDestination color kingside =
+  Position
+    (File (if kingside then 6 else 4))
+    (Rank (kingRank color))
+
+kingRank :: Color -> Int
+kingRank White = 1
+kingRank Black = 8
 
 moveRook :: Board -> Color -> Position -> Position -> Board
 moveRook board color fromRook toRook =
@@ -149,11 +172,11 @@ updateCastlingRights ::
   Position ->
   Maybe Piece ->
   CastlingRights
-updateCastlingRights rights piece fromPos toPos captured =
+updateCastlingRights rights piece fromPosition toPosition captured =
   disableRookCapture
-    (disableRookMovement (disableKingRights rights piece) piece fromPos)
+    (disableRookMovement (disableKingRights rights piece) piece fromPosition)
     captured
-    toPos
+    toPosition
 
 disableKingRights :: CastlingRights -> Piece -> CastlingRights
 disableKingRights rights piece
@@ -181,6 +204,15 @@ disableRookCapture rights (Just capturedPiece) pos
   | getPieceType capturedPiece /= Rook = rights
   | otherwise = disableRookMovement rights capturedPiece pos
 disableRookCapture rights Nothing _ = rights
+
+incrementPositionCount :: Map.Map PositionKey Int -> PositionKey -> (Map.Map PositionKey Int, Int)
+incrementPositionCount counts key =
+  let previousCount = Map.findWithDefault 0 key counts
+      newCount = previousCount + 1
+   in (Map.insert key newCount counts, newCount)
+
+declareDrawByAgreement :: GameState -> GameState
+declareDrawByAgreement gs = gs {gsResult = DrawByAgreement}
 
 applyPromotion :: Piece -> Maybe PieceType -> Piece
 applyPromotion piece Nothing = piece

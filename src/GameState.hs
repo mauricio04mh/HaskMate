@@ -4,12 +4,14 @@ module GameState
     isLegalMove,
     hasLegalMoves,
     determineResult,
+    declareDrawByAgreement,
     isKingInCheck,
   )
 where
 
 import GameState.StateUpdate
   ( applyMove,
+    declareDrawByAgreement,
     determineResult,
     hasLegalMoves,
     isLegalMove,

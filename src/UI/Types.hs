@@ -16,9 +16,9 @@ data UIState = UIState
 
 initialUIState :: UIState
 initialUIState =
-  UIState
-    { uiGameState = initialGameState,
-      uiSelection = Nothing,
-      uiPossibleMoves = [],
-      uiMessage = Just "Haz clic en una pieza para comenzar",
-    }
+      UIState
+        { uiGameState = initialGameState,
+          uiSelection = Nothing,
+          uiPossibleMoves = [],
+          uiMessage = Just "Haz clic en una pieza para comenzar"
+        }

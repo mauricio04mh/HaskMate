@@ -2,17 +2,17 @@ module Position where
 
 -- File (column) and Rank (row) constrained to 1-8.
 newtype File = File Int
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord)
 
 newtype Rank = Rank Int
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord)
 
 -- Chessboard coordinate.
 data Position = Position
   { posFile :: File,
     posRank :: Rank
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord)
 
 mkFile :: Int -> Maybe File
 mkFile x

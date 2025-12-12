@@ -9,12 +9,12 @@ import Data.List (find)
 import Data.Maybe (listToMaybe)
 
 import Board.Query (boardPieceAt)
-import GameState (GameState, applyMove, isLegalMove, gsActiveColor, gsBoard)
+import GameState (GameState, applyMove, declareDrawByAgreement, isLegalMove, gsActiveColor, gsBoard)
 import GameState.MoveGen (generateMovesForPiece)
 import Move (Move (..))
-import Piece (Piece, getPieceColor)
+import Piece (Piece, PieceType (..), getPieceColor)
 import Position (Position)
-import Graphics.Gloss.Interface.Pure.Game (Event (..), Key (..), MouseButton (..))
+import Graphics.Gloss.Interface.Pure.Game (Event (..), Key (..), KeyState (..), MouseButton (..))
 
 import UI.Coordinates (screenToPosition)
 import UI.Message (formatStateMessage)
@@ -22,6 +22,14 @@ import UI.Types (initialUIState, UIState (..))
 
 handleEvent :: Event -> UIState -> UIState
 handleEvent (EventKey (Char 'r') Down _ _) _ = initialUIState
+handleEvent (EventKey (Char 't') Down _ _) state =
+  let newGameState = declareDrawByAgreement (uiGameState state)
+   in state
+        { uiGameState = newGameState,
+          uiSelection = Nothing,
+          uiPossibleMoves = [],
+          uiMessage = Just (formatStateMessage newGameState)
+        }
 handleEvent (EventKey (MouseButton LeftButton) Down _ mousePos) state =
   maybe state (`handleBoardClick` state) (screenToPosition mousePos)
 handleEvent _ state = state

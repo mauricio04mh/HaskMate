@@ -14,9 +14,9 @@ where
 
 import Data.Maybe (listToMaybe, mapMaybe)
 
-import Board.Core (Board, Cell)
+import Board.Core (Board, cellPiece, cellPosition)
 import Board.Query (boardPieceAt)
-import Piece (Color, Piece (..), PieceType (..), getPieceColor, getPieceType)
+import Piece (Color (Black, White), PieceType (..), getPieceColor, getPieceType)
 import Position (File (..), Position (..), Rank (..))
 
 import GameState.Types (toggleColor)

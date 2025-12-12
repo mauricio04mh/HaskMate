@@ -1,13 +1,13 @@
 module Main where
 
-import Graphics.Gloss (Color, InWindow, makeColorI)
+import Graphics.Gloss (Color, Display (InWindow), makeColorI)
 import Graphics.Gloss.Interface.Pure.Game (play)
 
 import UI.Controller (handleEvent, stepSimulation)
 import UI.Renderer (drawUI)
 import UI.Types (initialUIState)
 
-window :: InWindow
+window :: Display
 window = InWindow "HaskMate" (640, 680) (100, 100)
 
 background :: Color

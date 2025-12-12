@@ -7,10 +7,9 @@ import Data.Maybe (fromMaybe)
 
 import Board.Core (Board, cellPiece, cellPosition)
 import GameState (gsBoard)
-import Piece (Color (..), Piece (..), PieceType (..))
+import Piece (Color (Black, White), Piece (..), PieceType (..))
 import Graphics.Gloss
-  ( Color,
-    Picture,
+  ( Picture,
     circleSolid,
     color,
     makeColorI,
@@ -20,6 +19,7 @@ import Graphics.Gloss
     text,
     translate,
   )
+import qualified Graphics.Gloss as Gloss (Color)
 import Position (Position)
 import UI.Coordinates (positionToPoint, squareSize)
 import UI.Message (formatStateMessage)
@@ -48,7 +48,7 @@ drawBoard =
       let y = (fromIntegral rank - 4.5) * squareSize
     ]
 
-squareColor :: Int -> Int -> Color
+squareColor :: Int -> Int -> Gloss.Color
 squareColor file rank
   | even (file + rank) = makeColorI 240 217 181 255
   | otherwise = makeColorI 181 136 99 255
@@ -67,7 +67,7 @@ highlightMove :: Position -> Picture
 highlightMove pos =
   highlightCircle pos (makeColorI 0 255 0 120)
 
-highlightCircle :: Position -> Color -> Picture
+highlightCircle :: Position -> Gloss.Color -> Picture
 highlightCircle pos highlightColor =
   let (x, y) = positionToPoint pos
    in translate x y $ color highlightColor $ circleSolid (squareSize / 4)
@@ -76,7 +76,7 @@ drawPieces :: Board -> Picture
 drawPieces board =
   pictures
     [ translate x y $
-      color (pieceColor piece) $
+      color (glyphColor piece) $
       scale 0.25 0.25 $
       text (pieceSymbol piece)
     | row <- board,
@@ -86,8 +86,8 @@ drawPieces board =
     ]
 
 pieceSymbol :: Piece -> String
-pieceSymbol (Piece White pieceType) = whiteSymbol pieceType
-pieceSymbol (Piece Black pieceType) = blackSymbol pieceType
+pieceSymbol (Piece White pType) = whiteSymbol pType
+pieceSymbol (Piece Black pType) = blackSymbol pType
 
 whiteSymbol, blackSymbol :: PieceType -> String
 whiteSymbol King = "♔"
@@ -103,9 +103,9 @@ blackSymbol Bishop = "♝"
 blackSymbol Knight = "♞"
 blackSymbol Pawn = "♟"
 
-pieceColor :: Piece -> Color
-pieceColor (Piece White _) = makeColorI 255 255 255 255
-pieceColor (Piece Black _) = makeColorI 0 0 0 255
+glyphColor :: Piece -> Gloss.Color
+glyphColor (Piece White _) = makeColorI 255 255 255 255
+glyphColor (Piece Black _) = makeColorI 0 0 0 255
 
 drawMessage :: UIState -> Picture
 drawMessage state =

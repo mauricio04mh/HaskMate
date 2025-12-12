@@ -7,7 +7,7 @@ module Board.Query
   )
 where
 
-import Board.Core (Board, Cell)
+import Board.Core (Board, Cell, cellPiece)
 import Piece (Piece)
 import Position (File (..), Position (..), Rank (..))
 
@@ -18,7 +18,9 @@ boardCellAt board pos = do
   safeIndex row colIdx
 
 boardPieceAt :: Board -> Position -> Maybe Piece
-boardPieceAt board pos = cellPiece <$> boardCellAt board pos
+boardPieceAt board pos = do
+  cell <- boardCellAt board pos
+  cellPiece cell
 
 isCellOccupied :: Board -> Position -> Bool
 isCellOccupied board pos =
