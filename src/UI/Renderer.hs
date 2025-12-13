@@ -7,7 +7,7 @@ import Data.Maybe (fromMaybe)
 
 import Board.Core (Board, cellPiece, cellPosition)
 import GameState (gsBoard)
-import Piece (Color (Black, White), Piece (..), PieceType (..))
+import Piece (Piece (..))
 import Graphics.Gloss
   ( Picture,
     circleSolid,
@@ -21,31 +21,32 @@ import Graphics.Gloss
   )
 import qualified Graphics.Gloss as Gloss (Color)
 import Position (Position)
-import UI.Coordinates (positionToPoint, squareSize)
+import UI.Coordinates (positionToPoint)
 import UI.Message (formatStateMessage)
-import UI.Types (UIState (..))
+import UI.Assets (Assets, pieceSprite)
+import UI.Types (UIState (..), uiSquareSize)
 
 drawUI :: UIState -> Picture
 drawUI state =
-  pictures
-    [ drawBoard,
-      drawHighlights state,
-      drawPieces (gsBoard gameState),
-      drawMessage state
-    ]
-  where
-    gameState = uiGameState state
+  let sqSize = uiSquareSize state
+      gameState = uiGameState state
+   in pictures
+        [ drawBoard sqSize,
+          drawHighlights sqSize state,
+          drawPieces sqSize (uiAssets state) (gsBoard gameState),
+          drawMessage state
+        ]
 
-drawBoard :: Picture
-drawBoard =
+drawBoard :: Float -> Picture
+drawBoard sqSize =
   pictures
     [ translate x y $
       color (squareColor file rank) $
-      rectangleSolid squareSize squareSize
+      rectangleSolid sqSize sqSize
     | file <- [1 .. 8],
       rank <- [1 .. 8],
-      let x = (fromIntegral file - 4.5) * squareSize,
-      let y = (fromIntegral rank - 4.5) * squareSize
+      let x = (fromIntegral file - 4.5) * sqSize,
+      let y = (fromIntegral rank - 4.5) * sqSize
     ]
 
 squareColor :: Int -> Int -> Gloss.Color
@@ -53,63 +54,47 @@ squareColor file rank
   | even (file + rank) = makeColorI 240 217 181 255
   | otherwise = makeColorI 181 136 99 255
 
-drawHighlights :: UIState -> Picture
-drawHighlights state =
+drawHighlights :: Float -> UIState -> Picture
+drawHighlights sqSize state =
   pictures $
-    maybe [] (\pos -> [highlightSelection pos]) (uiSelection state)
-      ++ map highlightMove (uiPossibleMoves state)
+    maybe [] (\pos -> [highlightSelection sqSize pos]) (uiSelection state)
+      ++ map (highlightMove sqSize) (uiPossibleMoves state)
 
-highlightSelection :: Position -> Picture
-highlightSelection pos =
-  highlightCircle pos (makeColorI 255 255 0 100)
+highlightSelection :: Float -> Position -> Picture
+highlightSelection sqSize pos =
+  highlightCircle sqSize pos (makeColorI 255 255 0 100)
 
-highlightMove :: Position -> Picture
-highlightMove pos =
-  highlightCircle pos (makeColorI 0 255 0 120)
+highlightMove :: Float -> Position -> Picture
+highlightMove sqSize pos =
+  highlightCircle sqSize pos (makeColorI 0 255 0 120)
 
-highlightCircle :: Position -> Gloss.Color -> Picture
-highlightCircle pos highlightColor =
-  let (x, y) = positionToPoint pos
-   in translate x y $ color highlightColor $ circleSolid (squareSize / 4)
+highlightCircle :: Float -> Position -> Gloss.Color -> Picture
+highlightCircle sqSize pos highlightColor =
+  let (x, y) = positionToPoint sqSize pos
+   in translate x y $ color highlightColor $ circleSolid (sqSize / 4)
 
-drawPieces :: Board -> Picture
-drawPieces board =
+drawPieces :: Float -> Assets -> Board -> Picture
+drawPieces sqSize assets board =
   pictures
-    [ translate x y $
-      color (glyphColor piece) $
-      scale 0.25 0.25 $
-      text (pieceSymbol piece)
+    [ drawPiece sqSize assets (cellPosition cell) piece
     | row <- board,
       cell <- row,
-      Just piece <- [cellPiece cell],
-      let (x, y) = positionToPoint (cellPosition cell)
+      Just piece <- [cellPiece cell]
     ]
 
-pieceSymbol :: Piece -> String
-pieceSymbol (Piece White pType) = whiteSymbol pType
-pieceSymbol (Piece Black pType) = blackSymbol pType
-
-whiteSymbol, blackSymbol :: PieceType -> String
-whiteSymbol King = "♔"
-whiteSymbol Queen = "♕"
-whiteSymbol Rook = "♖"
-whiteSymbol Bishop = "♗"
-whiteSymbol Knight = "♘"
-whiteSymbol Pawn = "♙"
-blackSymbol King = "♚"
-blackSymbol Queen = "♛"
-blackSymbol Rook = "♜"
-blackSymbol Bishop = "♝"
-blackSymbol Knight = "♞"
-blackSymbol Pawn = "♟"
-
-glyphColor :: Piece -> Gloss.Color
-glyphColor (Piece White _) = makeColorI 255 255 255 255
-glyphColor (Piece Black _) = makeColorI 0 0 0 255
+drawPiece :: Float -> Assets -> Position -> Piece -> Picture
+drawPiece sqSize assets pos piece =
+  let (x, y) = positionToPoint sqSize pos
+      (sprite, spriteSize) = pieceSprite assets piece
+      scaleFactor = (sqSize * 0.85) / spriteSize
+   in translate x y $ scale scaleFactor scaleFactor sprite
 
 drawMessage :: UIState -> Picture
 drawMessage state =
-  translate (-300) (-320) $
-  scale 0.15 0.15 $
-  color (makeColorI 255 255 255 255) $
-  text (fromMaybe (formatStateMessage (uiGameState state)) (uiMessage state))
+  let (width, height) = uiWindowSize state
+      x = -width / 2 + 20
+      y = -height / 2 + 20
+   in translate x y $
+        scale 0.15 0.15 $
+        color (makeColorI 255 255 255 255) $
+        text (fromMaybe (formatStateMessage (uiGameState state)) (uiMessage state))
