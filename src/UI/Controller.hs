@@ -18,10 +18,12 @@ import Graphics.Gloss.Interface.Pure.Game (Event (..), Key (..), KeyState (..), 
 
 import UI.Coordinates (screenToPosition)
 import UI.Message (formatStateMessage)
-import UI.Types (initialUIState, UIState (..))
+import UI.Types (initialUIState, UIState (..), uiSquareSize)
 
 handleEvent :: Event -> UIState -> UIState
-handleEvent (EventKey (Char 'r') Down _ _) _ = initialUIState
+handleEvent (EventKey (Char 'r') Down _ _) state =
+  let resetState = initialUIState (uiAssets state)
+   in resetState {uiWindowSize = uiWindowSize state}
 handleEvent (EventKey (Char 't') Down _ _) state =
   let newGameState = declareDrawByAgreement (uiGameState state)
    in state
@@ -31,7 +33,10 @@ handleEvent (EventKey (Char 't') Down _ _) state =
           uiMessage = Just (formatStateMessage newGameState)
         }
 handleEvent (EventKey (MouseButton LeftButton) Down _ mousePos) state =
-  maybe state (`handleBoardClick` state) (screenToPosition mousePos)
+  let sqSize = uiSquareSize state
+   in maybe state (`handleBoardClick` state) (screenToPosition sqSize mousePos)
+handleEvent (EventResize (w, h)) state =
+  state {uiWindowSize = (fromIntegral w, fromIntegral h)}
 handleEvent _ state = state
 
 stepSimulation :: Float -> UIState -> UIState
