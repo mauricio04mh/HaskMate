@@ -30,7 +30,7 @@ library
                     , GameState.MoveGen
                     , GameState.StateUpdate
                     , Paths_HaskMate
-    build-depends:    base >=4.17 && <4.18
+    build-depends:    base >=4.17 && <4.19
                     , gloss >=1.13
                     , gloss-juicy >=0.2
                     , JuicyPixels >=3.3
@@ -41,7 +41,7 @@ library
 executable HaskMate
     import:           warnings
     main-is:          Main.hs
-    build-depends:    base >=4.17 && <4.18
+    build-depends:    base >=4.17 && <4.19
                     , HaskMate
                     , gloss >=1.13
                     , containers >=0.6
