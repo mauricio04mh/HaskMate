@@ -25,7 +25,8 @@ library
                     , UI.Message
                     , UI.Renderer
                     , UI.Types
-    other-modules:    GameState.Types
+    other-modules:    AI.Minimax
+                    , GameState.Types
                     , GameState.Validation
                     , GameState.MoveGen
                     , GameState.StateUpdate

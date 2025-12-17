@@ -1,3 +1,10 @@
+module AI.Minimax
+  ( evaluate,
+    minimax,
+    getAllLegalMoves,
+  )
+where
+
 import Data.List (maximumBy, minimumBy)
 import Data.Maybe (mapMaybe)
 import Data.Ord (comparing)
