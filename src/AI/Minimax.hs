@@ -5,12 +5,13 @@ module AI.Minimax
   )
 where
 
+import AI.Heuristics (kingSafetyScore, pawnStructureScore)
 import AI.PST (positionalScore)
 import Board.Core (Board)
 import Data.List (maximumBy, minimumBy)
 import Data.Maybe (mapMaybe)
 import Data.Ord (comparing)
-import GameState (GameState, Result (..), applyMove, gsActiveColor, gsBoard, gsResult, isLegalMove)
+import GameState (GameState, Result (..), applyMove, gsActiveColor, gsBoard, gsCastlingRights, gsResult, isLegalMove)
 import GameState.MoveGen (generateMovesForPiece, piecePositions)
 import Move (Move)
 import Piece (Color (Black, White), Piece (..), PieceType (..), getPieceType)
@@ -23,7 +24,11 @@ evaluate gameState =
     DrawByRepetition -> 0
     Stalemate -> 0
     DrawByAgreement -> 0
-    Ongoing -> materialScore board + positionalScore board
+    Ongoing ->
+      materialScore board
+        + positionalScore board
+        + kingSafetyScore board (gsCastlingRights gameState)
+        + pawnStructureScore board
   where
     board = gsBoard gameState
     mateScoreFor White = mateScore

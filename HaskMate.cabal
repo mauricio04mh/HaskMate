@@ -25,8 +25,9 @@ library
                     , UI.Message
                     , UI.Renderer
                     , UI.Types
-    other-modules:    AI.Minimax
-                    , Evaluation.PST
+    other-modules:    AI.Heuristics
+                    , AI.Minimax
+                    , AI.PST
                     , GameState.Types
                     , GameState.Validation
                     , GameState.MoveGen

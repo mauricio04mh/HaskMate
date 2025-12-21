@@ -12,9 +12,9 @@ module UI.Types
 where
 
 import GameState (GameState (..), initialGameState)
+import Piece (Color (Black, White))
 import Position (Position)
 import UI.Assets (Assets)
-import Piece (Color (Black, White))
 
 data UIState = UIState
   { uiGameState :: GameState,
@@ -57,7 +57,7 @@ initialUIState assets =
     }
 
 defaultAICooldown :: Float
-defaultAICooldown = 0.25
+defaultAICooldown = 0.7
 
 uiSquareSize :: UIState -> Float
 uiSquareSize state =
