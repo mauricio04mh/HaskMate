@@ -1,59 +1,17 @@
-module AI.Minimax
-  ( evaluate,
-    minimax,
+module AI.Search
+  ( minimax,
     getAllLegalMoves,
   )
 where
 
-import AI.Heuristics (kingSafetyScore, pawnStructureScore)
-import AI.PST (positionalScore)
-import Board.Core (Board)
+import AI.Evaluation (evaluate)
 import Data.List (maximumBy, minimumBy)
 import Data.Maybe (mapMaybe)
 import Data.Ord (comparing)
-import GameState (GameState, Result (..), applyMove, gsActiveColor, gsBoard, gsCastlingRights, gsResult, isLegalMove)
+import GameState (GameState, Result (..), applyMove, gsActiveColor, gsBoard, gsResult, isLegalMove)
 import GameState.MoveGen (generateMovesForPiece, piecePositions)
 import Move (Move)
-import Piece (Color (Black, White), Piece (..), PieceType (..), getPieceType)
-
-evaluate :: GameState -> Int
-evaluate gameState =
-  case gsResult gameState of
-    Checkmate winner -> mateScoreFor winner
-    DrawBy50Moves -> 0
-    DrawByRepetition -> 0
-    Stalemate -> 0
-    DrawByAgreement -> 0
-    Ongoing ->
-      materialScore board
-        + positionalScore board
-        + kingSafetyScore board (gsCastlingRights gameState)
-        + pawnStructureScore board
-  where
-    board = gsBoard gameState
-    mateScoreFor White = mateScore
-    mateScoreFor Black = negate mateScore
-
-mateScore :: Int
-mateScore = 100000
-
-materialScore :: Board -> Int
-materialScore board =
-  totalValue White board - totalValue Black board
-
-totalValue :: Color -> Board -> Int
-totalValue color board =
-  sum [pieceValue piece | (_, piece) <- piecePositions board color]
-
-pieceValue :: Piece -> Int
-pieceValue piece =
-  case getPieceType piece of
-    Pawn -> 100
-    Knight -> 320
-    Bishop -> 330
-    Rook -> 500
-    Queen -> 900
-    King -> 20000
+import Piece (Color (White))
 
 minimax :: Int -> GameState -> Maybe Move
 minimax depth gameState
@@ -82,9 +40,7 @@ minimaxScore depth gameState
     legalMoves = getAllLegalMoves gameState
     childScores =
       mapMaybe
-        ( \move ->
-            fmap (minimaxScore (depth - 1)) (applyMove gameState move)
-        )
+        (fmap (minimaxScore (depth - 1)) . applyMove gameState)
         legalMoves
 
 pickBest :: Bool -> [(Int, Move)] -> Maybe (Int, Move)

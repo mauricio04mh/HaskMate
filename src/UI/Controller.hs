@@ -4,12 +4,11 @@ module UI.Controller
   )
 where
 
-import AI.Minimax (minimax)
+import AI.Search (minimax)
+import Board.Query (boardPieceAt)
 import Control.Applicative ((<|>))
 import Data.List (find)
 import Data.Maybe (listToMaybe)
-
-import Board.Query (boardPieceAt)
 import GameState
   ( GameState,
     Result (..),
@@ -21,11 +20,10 @@ import GameState
     isLegalMove,
   )
 import GameState.MoveGen (generateMovesForPiece)
+import Graphics.Gloss.Interface.Pure.Game (Event (..), Key (..), KeyState (..), MouseButton (..), SpecialKey (..))
 import Move (Move (..))
 import Piece (Piece, PieceType (..), getPieceColor)
 import Position (Position)
-import Graphics.Gloss.Interface.Pure.Game (Event (..), Key (..), KeyState (..), MouseButton (..), SpecialKey (..))
-
 import UI.Coordinates (screenToPosition)
 import UI.Message (formatStateMessage)
 import UI.Types
@@ -94,10 +92,10 @@ handleBoardClick pos state =
     Just selected
       | selected == pos -> state {uiSelection = Nothing, uiPossibleMoves = []}
       | otherwise ->
-        case boardPieceAt (gsBoard gameState) pos of
-          Just piece
-            | getPieceColor piece == gsActiveColor gameState -> selectPiece pos state
-          _ -> attemptMove selected pos state
+          case boardPieceAt (gsBoard gameState) pos of
+            Just piece
+              | getPieceColor piece == gsActiveColor gameState -> selectPiece pos state
+            _ -> attemptMove selected pos state
   where
     gameState = uiGameState state
 
@@ -106,16 +104,16 @@ selectPiece pos state =
   case boardPieceAt board pos of
     Just piece
       | getPieceColor piece == gsActiveColor gameState ->
-        let legalMoves =
-              [ toPos move
-                | move <- generateMovesForPiece gameState pos piece,
-                  isLegalMove gameState move
-              ]
-         in state
-              { uiSelection = Just pos,
-                uiPossibleMoves = legalMoves,
-                uiMessage = Just (formatStateMessage gameState)
-              }
+          let legalMoves =
+                [ toPos move
+                  | move <- generateMovesForPiece gameState pos piece,
+                    isLegalMove gameState move
+                ]
+           in state
+                { uiSelection = Just pos,
+                  uiPossibleMoves = legalMoves,
+                  uiMessage = Just (formatStateMessage gameState)
+                }
     _ -> state {uiSelection = Nothing, uiPossibleMoves = [], uiMessage = Just (formatStateMessage gameState)}
   where
     gameState = uiGameState state
@@ -128,11 +126,11 @@ attemptMove from to state =
       case selectMoveForDestination gameState from to piece of
         Just move
           | isLegalMove gameState move ->
-            case applyMove gameState move of
-              Just newGame -> applyGameStateChange newGame state
-              Nothing -> state {uiMessage = Just "No se pudo aplicar el movimiento"}
+              case applyMove gameState move of
+                Just newGame -> applyGameStateChange newGame state
+                Nothing -> state {uiMessage = Just "No se pudo aplicar el movimiento"}
           | otherwise ->
-            state {uiMessage = Just "Movimiento ilegal"}
+              state {uiMessage = Just "Movimiento ilegal"}
         Nothing -> state {uiMessage = Just "Movimiento inválido"}
     Nothing -> state {uiMessage = Just (formatStateMessage gameState)}
   where

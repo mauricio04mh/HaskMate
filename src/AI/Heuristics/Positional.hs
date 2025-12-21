@@ -1,10 +1,6 @@
-module AI.PST
+module AI.Heuristics.Positional
   ( positionalScore,
     pstValue,
-    positionToPSTIndex,
-    mirrorPositionForBlack,
-    pawnPST,
-    knightPST,
   )
 where
 

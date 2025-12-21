@@ -25,9 +25,12 @@ library
                     , UI.Message
                     , UI.Renderer
                     , UI.Types
-    other-modules:    AI.Heuristics
-                    , AI.Minimax
-                    , AI.PST
+    other-modules:    AI.Search
+                    , AI.Evaluation
+                    , AI.Heuristics.Material
+                    , AI.Heuristics.Positional
+                    , AI.Heuristics.Pawn
+                    , AI.Heuristics.King
                     , GameState.Types
                     , GameState.Validation
                     , GameState.MoveGen
