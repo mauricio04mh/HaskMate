@@ -5,11 +5,11 @@ module AI.Minimax
   )
 where
 
+import AI.PST (positionalScore)
+import Board.Core (Board)
 import Data.List (maximumBy, minimumBy)
 import Data.Maybe (mapMaybe)
 import Data.Ord (comparing)
-
-import Board.Core (Board)
 import GameState (GameState, Result (..), applyMove, gsActiveColor, gsBoard, gsResult, isLegalMove)
 import GameState.MoveGen (generateMovesForPiece, piecePositions)
 import Move (Move)
@@ -23,8 +23,9 @@ evaluate gameState =
     DrawByRepetition -> 0
     Stalemate -> 0
     DrawByAgreement -> 0
-    Ongoing -> materialScore (gsBoard gameState)
+    Ongoing -> materialScore board + positionalScore board
   where
+    board = gsBoard gameState
     mateScoreFor White = mateScore
     mateScoreFor Black = negate mateScore
 
