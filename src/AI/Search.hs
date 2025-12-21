@@ -6,7 +6,7 @@ module AI.Search
 where
 
 import AI.Evaluation (evaluate)
-import AI.SearchStats (SearchStats (..), emptySearchStats, withElapsedMs)
+import AI.SearchStats (SearchStats (..), emptySearchStats, withElapsedPicos)
 import Control.Monad.State.Strict (State, modify', runState)
 import Data.List (maximumBy, minimumBy)
 import Data.Maybe (catMaybes, mapMaybe)
@@ -54,8 +54,8 @@ minimaxWithStats depth gameState
           (scoredMoves, stats) = runState action emptySearchStats
           bestMove = snd <$> pickBest maximizing scoredMoves
       end <- getCPUTime
-      let elapsedMs = (end - start) `div` 1000000000
-      pure (bestMove, withElapsedMs elapsedMs stats)
+      let diffPicos = end - start
+      pure (bestMove, withElapsedPicos diffPicos stats)
 
 minimaxScore :: Int -> GameState -> Int
 minimaxScore depth gameState

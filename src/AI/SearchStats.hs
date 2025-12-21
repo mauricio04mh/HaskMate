@@ -1,7 +1,7 @@
 module AI.SearchStats
   ( SearchStats (..),
     emptySearchStats,
-    withElapsedMs,
+    withElapsedPicos,
   )
 where
 
@@ -10,12 +10,12 @@ data SearchStats = SearchStats
     leafEvals :: !Int,
     generatedMoves :: !Int,
     maxPlyReached :: !Int,
-    elapsedMs :: !Integer
+    elapsedPicos :: !Integer
   }
   deriving (Eq, Show)
 
 emptySearchStats :: SearchStats
 emptySearchStats = SearchStats 0 0 0 0 0
 
-withElapsedMs :: Integer -> SearchStats -> SearchStats
-withElapsedMs ms stats = stats {elapsedMs = ms}
+withElapsedPicos :: Integer -> SearchStats -> SearchStats
+withElapsedPicos picos stats = stats {elapsedPicos = picos}

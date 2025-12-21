@@ -1,8 +1,7 @@
 module Main where
 
 import Graphics.Gloss (Color, Display (FullScreen), makeColorI)
-import Graphics.Gloss.Interface.Pure.Game (play)
-
+import Graphics.Gloss.Interface.IO.Game (playIO)
 import UI.Assets (loadAssets)
 import UI.Controller (handleEvent, stepSimulation)
 import UI.Renderer (drawUI)
@@ -20,11 +19,11 @@ fps = 60
 main :: IO ()
 main = do
   assets <- loadAssets
-  play
+  playIO
     window
     background
     fps
     (initialUIState assets)
-    drawUI
+    (pure . drawUI)
     handleEvent
     stepSimulation

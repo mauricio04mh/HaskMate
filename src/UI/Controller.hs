@@ -4,7 +4,8 @@ module UI.Controller
   )
 where
 
-import AI.Search (minimax)
+import AI.Search (minimaxWithStats)
+import AI.SearchStats (SearchStats (..))
 import Board.Query (boardPieceAt)
 import Control.Applicative ((<|>))
 import Data.List (find)
@@ -20,10 +21,11 @@ import GameState
     isLegalMove,
   )
 import GameState.MoveGen (generateMovesForPiece)
-import Graphics.Gloss.Interface.Pure.Game (Event (..), Key (..), KeyState (..), MouseButton (..), SpecialKey (..))
+import Graphics.Gloss.Interface.IO.Game (Event (..), Key (..), KeyState (..), MouseButton (..), SpecialKey (..))
 import Move (Move (..))
 import Piece (Piece, PieceType (..), getPieceColor)
-import Position (Position)
+import Position (File (..), Position (..), Rank (..))
+import Text.Printf (printf)
 import UI.Coordinates (screenToPosition)
 import UI.Message (formatStateMessage)
 import UI.Types
@@ -38,13 +40,13 @@ import UI.Types
     uiSquareSize,
   )
 
-handleEvent :: Event -> UIState -> UIState
+handleEvent :: Event -> UIState -> IO UIState
 handleEvent (EventResize (w, h)) state =
-  state {uiWindowSize = (fromIntegral w, fromIntegral h)}
+  pure $ state {uiWindowSize = (fromIntegral w, fromIntegral h)}
 handleEvent event state =
   case uiScreen state of
-    Menu -> handleMenuEvent event state
-    Playing -> handlePlayingEvent event state
+    Menu -> pure $ handleMenuEvent event state
+    Playing -> pure $ handlePlayingEvent event state
 
 handleMenuEvent :: Event -> UIState -> UIState
 handleMenuEvent (EventKey (Char key) Down _ _) state =
@@ -72,17 +74,17 @@ handlePlayingEvent (EventKey (MouseButton LeftButton) Down _ mousePos) state
        in maybe state (`handleBoardClick` state) (screenToPosition sqSize mousePos)
 handlePlayingEvent _ state = state
 
-stepSimulation :: Float -> UIState -> UIState
+stepSimulation :: Float -> UIState -> IO UIState
 stepSimulation dt state
-  | uiScreen state /= Playing = state {uiIsThinking = False}
-  | uiPaused state = state {uiIsThinking = False}
-  | gsResult (uiGameState state) /= Ongoing = state {uiIsThinking = False}
-  | not (isAITurn state) = state {uiIsThinking = False}
+  | uiScreen state /= Playing = pure $ state {uiIsThinking = False}
+  | uiPaused state = pure $ state {uiIsThinking = False}
+  | gsResult (uiGameState state) /= Ongoing = pure $ state {uiIsThinking = False}
+  | not (isAITurn state) = pure $ state {uiIsThinking = False}
   | otherwise =
       let updatedCooldown = max 0 (uiAICooldown state - dt)
           waitingState = state {uiAICooldown = updatedCooldown, uiIsThinking = True}
        in if updatedCooldown > 0
-            then waitingState
+            then pure waitingState
             else performAIMove waitingState
 
 handleBoardClick :: Position -> UIState -> UIState
@@ -152,27 +154,55 @@ chooseMoveByPriority moves =
     <|> find (\m -> promotion m == Nothing) moves
     <|> listToMaybe moves
 
-performAIMove :: UIState -> UIState
+performAIMove :: UIState -> IO UIState
 performAIMove state =
   case controllerForTurn state of
-    AI depth ->
-      case minimax depth (uiGameState state) of
+    AI depth -> do
+      (mMove, stats) <- minimaxWithStats depth (uiGameState state)
+      case mMove of
         Nothing ->
-          state
-            { uiMessage = Just "IA sin movimientos",
-              uiIsThinking = False,
-              uiAICooldown = defaultAICooldown
-            }
+          pure
+            state
+              { uiMessage = Just "IA sin movimientos",
+                uiIsThinking = False,
+                uiAICooldown = defaultAICooldown
+              }
         Just move ->
           case applyMove (uiGameState state) move of
             Nothing ->
-              state
-                { uiMessage = Just "Error: applyMove falló para la IA",
-                  uiIsThinking = False,
-                  uiAICooldown = defaultAICooldown
-                }
-            Just newGame -> applyGameStateChange newGame state
-    Human -> state {uiIsThinking = False}
+              pure
+                state
+                  { uiMessage = Just "Error: applyMove falló para la IA",
+                    uiIsThinking = False,
+                    uiAICooldown = defaultAICooldown
+                  }
+            Just newGame ->
+              let cleared =
+                    state
+                      { uiGameState = newGame,
+                        uiSelection = Nothing,
+                        uiPossibleMoves = []
+                      }
+                  msg = formatAIMoveMessage move stats
+               in pure $ cleared {uiMessage = Just msg, uiIsThinking = False, uiAICooldown = defaultAICooldown}
+    Human -> pure $ state {uiIsThinking = False}
+
+formatAIMoveMessage :: Move -> SearchStats -> String
+formatAIMoveMessage move stats =
+  printf "IA movio %s (%d nodos, %.6fs)" (renderMove move) (nodesVisited stats) (fromIntegral (elapsedPicos stats) / 1e12 :: Double)
+
+renderMove :: Move -> String
+renderMove (Move (Position (File f1) (Rank r1)) (Position (File f2) (Rank r2)) promo) =
+  [fileToChar f1, rankToChar r1, fileToChar f2, rankToChar r2] ++ promoChar promo
+  where
+    fileToChar f = "abcdefgh" !! (f - 1)
+    rankToChar r = "12345678" !! (r - 1)
+    promoChar Nothing = ""
+    promoChar (Just Queen) = "q"
+    promoChar (Just Rook) = "r"
+    promoChar (Just Bishop) = "b"
+    promoChar (Just Knight) = "n"
+    promoChar (Just _) = ""
 
 applyGameStateChange :: GameState -> UIState -> UIState
 applyGameStateChange newGame state =
