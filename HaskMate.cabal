@@ -26,6 +26,11 @@ library
                     , UI.Renderer
                     , UI.Types
                     , AI.Search
+                    , AI.Search.Common
+                    , AI.Search.MinimaxPlain
+                    , AI.Search.MinimaxPlainStats
+                    , AI.Search.Negamax
+                    , AI.Search.NegamaxStats
                     , AI.Evaluation
                     , AI.Perft
                     , AI.SearchStats
