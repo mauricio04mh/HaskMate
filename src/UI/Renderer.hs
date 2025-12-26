@@ -3,11 +3,9 @@ module UI.Renderer
   )
 where
 
-import Data.Maybe (fromMaybe)
-
 import Board.Core (Board, cellPiece, cellPosition)
+import Data.Maybe (fromMaybe)
 import GameState (gsBoard)
-import Piece (Piece (..))
 import Graphics.Gloss
   ( Picture,
     circleSolid,
@@ -20,14 +18,21 @@ import Graphics.Gloss
     translate,
   )
 import qualified Graphics.Gloss as Gloss (Color)
+import Piece (Piece (..))
 import Position (Position)
+import UI.Assets (Assets, pieceSprite)
 import UI.Coordinates (positionToPoint)
 import UI.Message (formatStateMessage)
-import UI.Assets (Assets, pieceSprite)
-import UI.Types (UIState (..), uiSquareSize)
+import UI.Types (UIScreen (..), UIState (..), uiSquareSize)
 
 drawUI :: UIState -> Picture
 drawUI state =
+  case uiScreen state of
+    Menu -> drawMenu state
+    Playing -> drawGame state
+
+drawGame :: UIState -> Picture
+drawGame state =
   let sqSize = uiSquareSize state
       gameState = uiGameState state
    in pictures
@@ -37,16 +42,51 @@ drawUI state =
           drawMessage state
         ]
 
+drawMenu :: UIState -> Picture
+drawMenu state =
+  let (width, height) = uiWindowSize state
+      background =
+        color (makeColorI 24 26 27 255) $
+          rectangleSolid width height
+      startY = height / 4
+      lineSpacing = 40
+      linesWithIndex = zip menuLines [0 :: Int ..]
+      textPictures =
+        [ translate (-width / 2 + 40) (startY - fromIntegral idx * lineSpacing) $
+            scale lineScale lineScale $
+              color (makeColorI 255 255 255 255) $
+                text line
+          | (line, idx) <- linesWithIndex
+        ]
+      lineScale = 0.2
+   in pictures (background : textPictures)
+
+menuLines :: [String]
+menuLines =
+  [ "HaskMate",
+    "",
+    "Selecciona un modo:",
+    "1: Humano vs Humano",
+    "2: Humano (Blancas) vs IA (Negras)",
+    "3: IA (Blancas) vs Humano (Negras)",
+    "4: IA vs IA",
+    "",
+    "Controles durante la partida:",
+    "Esc: volver al menu",
+    "R: reiniciar partida",
+    "Espacio: pausa (solo IA vs IA)"
+  ]
+
 drawBoard :: Float -> Picture
 drawBoard sqSize =
   pictures
     [ translate x y $
-      color (squareColor file rank) $
-      rectangleSolid sqSize sqSize
-    | file <- [1 .. 8],
-      rank <- [1 .. 8],
-      let x = (fromIntegral file - 4.5) * sqSize,
-      let y = (fromIntegral rank - 4.5) * sqSize
+        color (squareColor file rank) $
+          rectangleSolid sqSize sqSize
+      | file <- [1 .. 8],
+        rank <- [1 .. 8],
+        let x = (fromIntegral file - 4.5) * sqSize,
+        let y = (fromIntegral rank - 4.5) * sqSize
     ]
 
 squareColor :: Int -> Int -> Gloss.Color
@@ -77,9 +117,9 @@ drawPieces :: Float -> Assets -> Board -> Picture
 drawPieces sqSize assets board =
   pictures
     [ drawPiece sqSize assets (cellPosition cell) piece
-    | row <- board,
-      cell <- row,
-      Just piece <- [cellPiece cell]
+      | row <- board,
+        cell <- row,
+        Just piece <- [cellPiece cell]
     ]
 
 drawPiece :: Float -> Assets -> Position -> Piece -> Picture
@@ -96,5 +136,5 @@ drawMessage state =
       y = -height / 2 + 20
    in translate x y $
         scale 0.15 0.15 $
-        color (makeColorI 255 255 255 255) $
-        text (fromMaybe (formatStateMessage (uiGameState state)) (uiMessage state))
+          color (makeColorI 255 255 255 255) $
+            text (fromMaybe (formatStateMessage (uiGameState state)) (uiMessage state))

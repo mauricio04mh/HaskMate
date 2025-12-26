@@ -25,25 +25,85 @@ library
                     , UI.Message
                     , UI.Renderer
                     , UI.Types
-    other-modules:    GameState.Types
+                    , AI.Search
+                    , AI.Search.Common
+                    , AI.Search.MinimaxPlain
+                    , AI.Search.MinimaxPlainStats
+                    , AI.Search.Negamax
+                    , AI.Search.NegamaxStats
+                    , AI.Search.SearchConfig
+                    , AI.Search.Ordering
+                    , AI.Search.Quiescence
+                    , AI.Search.Timed
+                    , AI.Search.TimedState
+                    , AI.Evaluation
+                    , AI.Perft
+                    , AI.SearchStats
+                    , AI.Heuristics.Material
+                    , AI.Heuristics.Positional
+                    , AI.Heuristics.Pawn
+                    , AI.Heuristics.King
+                    , GameState.FEN
+                    , GameState.Types
                     , GameState.Validation
                     , GameState.MoveGen
                     , GameState.StateUpdate
-                    , Paths_HaskMate
-    build-depends:    base >=4.17 && <4.18
+    other-modules:    Paths_HaskMate
+    build-depends:    base >=4.17 && <4.19
                     , gloss >=1.13
                     , gloss-juicy >=0.2
                     , JuicyPixels >=3.3
                     , containers >=0.6
+                    , mtl >=2.3
     hs-source-dirs:   src
     default-language: Haskell2010
 
 executable HaskMate
     import:           warnings
     main-is:          Main.hs
-    build-depends:    base >=4.17 && <4.18
+    build-depends:    base >=4.17 && <4.19
                     , HaskMate
                     , gloss >=1.13
                     , containers >=0.6
+                    , mtl >=2.3
     hs-source-dirs:   app
+    default-language: Haskell2010
+
+executable HaskMate-perft
+    import:           warnings
+    main-is:          PerftMain.hs
+    build-depends:    base >=4.17 && <4.19
+                    , HaskMate
+                    , mtl >=2.3
+    hs-source-dirs:   app
+    default-language: Haskell2010
+
+executable HaskMate-bench
+    import:           warnings
+    main-is:          BenchMain.hs
+    build-depends:    base >=4.17 && <4.19
+                    , HaskMate
+                    , mtl >=2.3
+    hs-source-dirs:   app
+    default-language: Haskell2010
+
+executable HaskMate-phase2test
+    import:           warnings
+    main-is:          Phase2Test.hs
+    build-depends:    base >=4.17 && <4.19
+                    , HaskMate
+                    , mtl >=2.3
+    hs-source-dirs:   app
+    default-language: Haskell2010
+
+
+test-suite HaskMate-test
+    import:           warnings
+    type:             exitcode-stdio-1.0
+    main-is:          Spec.hs
+    build-depends:    base >=4.17 && <4.19
+                    , HaskMate
+                    , hspec >=2.11
+                    , mtl >=2.3
+    hs-source-dirs:   test
     default-language: Haskell2010
