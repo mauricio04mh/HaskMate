@@ -3,13 +3,11 @@ module Main where
 import AI.Search
   ( SearchLimits (..),
     SearchResult (..),
-    StopReason (..),
     defaultSearchLimits,
     minimax,
     searchBestMoveTimed,
   )
 import AI.SearchStats (SearchStats (..))
-import GameState (GameState)
 import GameState.FEN (parseFEN)
 import System.Exit (exitFailure)
 import Text.Printf (printf)

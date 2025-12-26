@@ -14,7 +14,6 @@ module AI.Search
     negamaxWithStats,
     -- Time-controlled search with Iterative Deepening
     searchBestMoveTimed,
-    minimaxTimed,
     SearchLimits (..),
     SearchResult (..),
     StopReason (..),
@@ -38,7 +37,7 @@ import AI.Search.SearchConfig
     StopReason (..),
     defaultSearchLimits,
   )
-import AI.Search.Timed (minimaxTimed, searchBestMoveTimed)
+import AI.Search.Timed (searchBestMoveTimed)
 import AI.SearchStats (SearchStats)
 import GameState (GameState)
 import Move (Move)
@@ -52,10 +51,6 @@ minimax depth gameState =
       unsafePerformIO $ do
         result <- searchBestMoveTimed limits gameState
         pure $ srBestMove result
-  where
-    -- Import at top of file would be better, but for local use:
-    unsafePerformIO :: IO a -> a
-    unsafePerformIO = System.IO.Unsafe.unsafePerformIO
 
 minimaxWithStats :: Int -> GameState -> IO (Maybe Move, SearchStats)
 minimaxWithStats depth gameState = do

@@ -6,6 +6,7 @@ module AI.Search.Negamax
 where
 
 import AI.Search.Common (getAllLegalMoves, inf, orderMoves, pickBestByScore, staticScore)
+import AI.Search.Quiescence (qsearch)
 import Data.Maybe (mapMaybe)
 import GameState (GameState, Result (..), applyMove, gsResult)
 import Move (Move)
@@ -17,8 +18,8 @@ negamax = bestMoveAB
 -- | Core negamax algorithm with alpha-beta pruning
 negamaxAB :: Int -> Int -> Int -> GameState -> Int
 negamaxAB depth alpha beta gameState
-  | depth <= 0 = staticScore gameState
   | gsResult gameState /= Ongoing = staticScore gameState
+  | depth <= 0 = qsearch qMaxDepth alpha beta gameState
   | null legalMoves = staticScore gameState
   | otherwise = go orderedMoves alpha False
   where
@@ -37,6 +38,9 @@ negamaxAB depth alpha beta gameState
            in if best' >= beta
                 then best'
                 else go rest best' True
+
+qMaxDepth :: Int
+qMaxDepth = 8
 
 -- | Root-level search function
 bestMoveAB :: Int -> GameState -> Maybe Move

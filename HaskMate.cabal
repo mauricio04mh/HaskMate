@@ -33,7 +33,9 @@ library
                     , AI.Search.NegamaxStats
                     , AI.Search.SearchConfig
                     , AI.Search.Ordering
+                    , AI.Search.Quiescence
                     , AI.Search.Timed
+                    , AI.Search.TimedState
                     , AI.Evaluation
                     , AI.Perft
                     , AI.SearchStats

@@ -41,18 +41,7 @@ orderMoves gameState moves =
         Just piece -> getPieceColor piece /= gsActiveColor gameState
         Nothing -> False
     isPromotion move = isJust (promotion move)
-    givesCheck move = y
-      mejorar
-      la
-      y
-      mejorar
-      la
-      funcion
-      de
-      evaluacion
-      funcion
-      de
-      evaluacion
+    givesCheck move =
       case applyMove gameState move of
         Nothing -> False
         Just nextState ->

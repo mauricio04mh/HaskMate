@@ -6,17 +6,18 @@ where
 
 import AI.Search.Common (getAllLegalMoves, inf, staticScore)
 import AI.Search.Ordering
-  ( OrderContext (..),
-    emptyOrderContext,
+  ( emptyOrderContext,
     orderMovesCtx,
     updateHistory,
     updateKiller,
   )
+import AI.Search.Quiescence (qsearchTimed)
 import AI.Search.SearchConfig
   ( SearchLimits (..),
     SearchResult (..),
     StopReason (..),
   )
+import AI.Search.TimedState (Deadline, SearchState (..))
 import AI.SearchStats (SearchStats (..), emptySearchStats)
 import Board.Query (boardPieceAt)
 import Control.Monad.State.Strict (State, get, modify', runState)
@@ -26,15 +27,8 @@ import Move (Move (..))
 import Piece (getPieceColor)
 import System.CPUTime (getCPUTime)
 
--- | Deadline in picoseconds
-type Deadline = Integer
-
--- | State that tracks both search stats and order context
-data SearchState = SearchState
-  { ssStats :: !SearchStats,
-    ssContext :: !OrderContext,
-    ssNodeCount :: !Int -- Counter for checking time every N nodes
-  }
+qMaxDepth :: Int
+qMaxDepth = 8
 
 -- | Negamax with alpha-beta pruning, time control, and context updates
 negamaxABTimed ::
@@ -59,36 +53,39 @@ negamaxABTimed limits deadline ply depthRemaining alpha beta gameState = do
       }
 
   -- Base cases
-  if depthRemaining <= 0 || gsResult gameState /= Ongoing
+  if gsResult gameState /= Ongoing
     then do
       modify' $ \st ->
         st
           { ssStats = (ssStats st) {leafEvals = leafEvals (ssStats st) + 1}
           }
       pure $ Right $ staticScore gameState
-    else do
-      let legalMoves = getAllLegalMoves gameState
+    else
+      if depthRemaining <= 0
+        then qsearchTimed limits deadline qMaxDepth alpha beta ply gameState
+        else do
+          let legalMoves = getAllLegalMoves gameState
 
-      modify' $ \st ->
-        st
-          { ssStats =
-              (ssStats st)
-                { generatedMoves = generatedMoves (ssStats st) + length legalMoves
-                }
-          }
-
-      if null legalMoves
-        then do
           modify' $ \st ->
             st
-              { ssStats = (ssStats st) {leafEvals = leafEvals (ssStats st) + 1}
+              { ssStats =
+                  (ssStats st)
+                    { generatedMoves = generatedMoves (ssStats st) + length legalMoves
+                    }
               }
-          pure $ Right $ staticScore gameState
-        else do
-          -- Order moves with context
-          ctx <- fmap ssContext get
-          let orderedMoves = orderMovesCtx ctx gameState ply legalMoves
-          searchMoves orderedMoves alpha False
+
+          if null legalMoves
+            then do
+              modify' $ \st ->
+                st
+                  { ssStats = (ssStats st) {leafEvals = leafEvals (ssStats st) + 1}
+                  }
+              pure $ Right $ staticScore gameState
+            else do
+              -- Order moves with context
+              ctx <- fmap ssContext get
+              let orderedMoves = orderMovesCtx ctx gameState ply legalMoves
+              searchMoves orderedMoves alpha False
   where
     searchMoves [] best hadChild =
       if hadChild
@@ -215,7 +212,7 @@ searchBestMoveTimed limits gameState
       let deadlinePicos = startTime + fromIntegral (slTimeLimitMs limits) * 1000000000
       iterativeDeepening deadlinePicos 1 Nothing 0 emptySearchStats emptyOrderContext
   where
-    iterativeDeepening deadline depth lastBestMove lastBestScore lastStats lastCtx
+    iterativeDeepening deadline depth lastBestMove lastBestScore lastStats _
       | depth > slMaxDepth limits =
           pure $
             SearchResult

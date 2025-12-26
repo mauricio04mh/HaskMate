@@ -4,6 +4,7 @@ module AI.Search.NegamaxStats
 where
 
 import AI.Search.Common (getAllLegalMoves, inf, orderMoves, pickBestByScore, staticScore)
+import AI.Search.Quiescence (qsearchWithStats)
 import AI.SearchStats (SearchStats (..), emptySearchStats, withElapsedPicos)
 import Control.Monad.State.Strict (State, modify', runState)
 import Data.Maybe (catMaybes)
@@ -46,14 +47,17 @@ negamaxABWithStats depth alpha beta ply gameState = do
             maxPlyReached = max (maxPlyReached stats) ply
           }
     )
-  if depth <= 0 || gsResult gameState /= Ongoing
+  if gsResult gameState /= Ongoing
     then leafEval
-    else do
-      let legalMoves = orderMoves gameState (getAllLegalMoves gameState)
-      modify' (\stats -> stats {generatedMoves = generatedMoves stats + length legalMoves})
-      if null legalMoves
-        then leafEval
-        else go legalMoves alpha False
+    else
+      if depth <= 0
+        then qsearchWithStats qMaxDepth alpha beta ply gameState
+        else do
+          let legalMoves = orderMoves gameState (getAllLegalMoves gameState)
+          modify' (\stats -> stats {generatedMoves = generatedMoves stats + length legalMoves})
+          if null legalMoves
+            then leafEval
+            else go legalMoves alpha False
   where
     leafEval = do
       modify' (\stats -> stats {leafEvals = leafEvals stats + 1})
@@ -71,3 +75,6 @@ negamaxABWithStats depth alpha beta ply gameState = do
           if best' >= beta
             then pure best'
             else go rest best' True
+
+qMaxDepth :: Int
+qMaxDepth = 8
