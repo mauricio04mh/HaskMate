@@ -12,6 +12,13 @@ module AI.Search
     minimaxPlainWithStats,
     negamax,
     negamaxWithStats,
+    -- Time-controlled search with Iterative Deepening
+    searchBestMoveTimed,
+    minimaxTimed,
+    SearchLimits (..),
+    SearchResult (..),
+    StopReason (..),
+    defaultSearchLimits,
 
     -- * Common utilities
     getAllLegalMoves,
@@ -20,20 +27,38 @@ module AI.Search
   )
 where
 
--- Re-export from modular structure
 import AI.Search.Common (getAllLegalMoves, orderMoves, staticScore)
 import AI.Search.MinimaxPlain (minimaxPlain)
 import AI.Search.MinimaxPlainStats (minimaxPlainWithStats)
 import AI.Search.Negamax (negamax)
 import AI.Search.NegamaxStats (negamaxWithStats)
+import AI.Search.SearchConfig
+  ( SearchLimits (..),
+    SearchResult (..),
+    StopReason (..),
+    defaultSearchLimits,
+  )
+import AI.Search.Timed (minimaxTimed, searchBestMoveTimed)
 import AI.SearchStats (SearchStats)
 import GameState (GameState)
 import Move (Move)
+import System.IO.Unsafe (unsafePerformIO)
 
--- | Default minimax uses optimized negamax
 minimax :: Int -> GameState -> Maybe Move
-minimax = negamax
+minimax depth gameState =
+  let limits = defaultSearchLimits {slMaxDepth = depth, slTimeLimitMs = 5000}
+   in -- Run in IO and extract, unsafe but acceptable for this use case
+      -- In practice, minimax should rarely be used directly (minimaxWithStats is preferred)
+      unsafePerformIO $ do
+        result <- searchBestMoveTimed limits gameState
+        pure $ srBestMove result
+  where
+    -- Import at top of file would be better, but for local use:
+    unsafePerformIO :: IO a -> a
+    unsafePerformIO = System.IO.Unsafe.unsafePerformIO
 
--- | Default minimaxWithStats uses optimized negamax with stats
 minimaxWithStats :: Int -> GameState -> IO (Maybe Move, SearchStats)
-minimaxWithStats = negamaxWithStats
+minimaxWithStats depth gameState = do
+  let limits = defaultSearchLimits {slMaxDepth = depth, slTimeLimitMs = 5000}
+  result <- searchBestMoveTimed limits gameState
+  pure (srBestMove result, srStatsTotal result)

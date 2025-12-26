@@ -31,6 +31,9 @@ library
                     , AI.Search.MinimaxPlainStats
                     , AI.Search.Negamax
                     , AI.Search.NegamaxStats
+                    , AI.Search.SearchConfig
+                    , AI.Search.Ordering
+                    , AI.Search.Timed
                     , AI.Evaluation
                     , AI.Perft
                     , AI.SearchStats
@@ -81,6 +84,16 @@ executable HaskMate-bench
                     , mtl >=2.3
     hs-source-dirs:   app
     default-language: Haskell2010
+
+executable HaskMate-phase2test
+    import:           warnings
+    main-is:          Phase2Test.hs
+    build-depends:    base >=4.17 && <4.19
+                    , HaskMate
+                    , mtl >=2.3
+    hs-source-dirs:   app
+    default-language: Haskell2010
+
 
 test-suite HaskMate-test
     import:           warnings
