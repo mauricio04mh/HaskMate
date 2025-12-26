@@ -185,18 +185,13 @@ rootSearchTimed limits deadline depth gameState = do
         Just nextState -> do
           currentTime <- getCPUTime
           if currentTime >= deadline
-            then
-              if isJust currentBest
-                then pure $ Right (currentBest, currentBestScore, st)
-                else pure $ Left TimeUp
+            then pure $ Left TimeUp
             else do
               let (result, st') = runState (negamaxABTimed limits deadline 1 (depth - 1) (negate inf) (negate currentBestScore) nextState) st
               case result of
                 Left _ ->
-                  -- TimeUp or any error
-                  if isJust currentBest
-                    then pure $ Right (currentBest, currentBestScore, st')
-                    else pure $ Left TimeUp
+                  -- TimeUp or any error: do not accept partial root results
+                  pure $ Left TimeUp
                 Right score -> do
                   let scoreNeg = negate score
                   if scoreNeg > currentBestScore

@@ -290,9 +290,9 @@ isAIController _ = False
 
 controllersForOption :: Char -> Maybe (Controller, Controller)
 controllersForOption '1' = Just (Human, Human)
-controllersForOption '2' = Just (Human, AI 3)
+controllersForOption '2' = Just (Human, AI 7)
 controllersForOption '3' = Just (AI 3, Human)
-controllersForOption '4' = Just (AI 4, AI 4)
+controllersForOption '4' = Just (AI 7, AI 7)
 controllersForOption _ = Nothing
 
 aiTurnPrompt :: UIState -> String
