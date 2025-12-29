@@ -48,6 +48,8 @@ applyMove gs move = do
       nextEnPassantTarget = determineEnPassantTarget movingPiece (fromPos move) (toPos move)
       snapshotKey = positionKey nextBoard nextColor nextCastling nextEnPassantTarget
       (updatedCounts, repetitionCount) = incrementPositionCount (gsPositionCounts gs) snapshotKey
+      (nextCapturedByWhite, nextCapturedByBlack) =
+        recordCapture (gsActiveColor gs) destPiece (gsCapturedByWhite gs, gsCapturedByBlack gs)
       baseState =
         gs
           { gsBoard = nextBoard,
@@ -57,6 +59,8 @@ applyMove gs move = do
             gsHalfmoveClock = nextHalfmove,
             gsFullmoveNumber = nextFullmove,
             gsPositionCounts = updatedCounts,
+            gsCapturedByWhite = nextCapturedByWhite,
+            gsCapturedByBlack = nextCapturedByBlack,
             gsResult = Ongoing
           }
       nextResult = determineResult baseState nextBoard (gsActiveColor gs) nextColor nextHalfmove repetitionCount
@@ -210,6 +214,13 @@ incrementPositionCount counts key =
   let previousCount = Map.findWithDefault 0 key counts
       newCount = previousCount + 1
    in (Map.insert key newCount counts, newCount)
+
+recordCapture :: Color -> Maybe Piece -> ([Piece], [Piece]) -> ([Piece], [Piece])
+recordCapture _ Nothing captures = captures
+recordCapture color (Just captured) (whiteCaptures, blackCaptures) =
+  case color of
+    White -> (whiteCaptures ++ [captured], blackCaptures)
+    Black -> (whiteCaptures, blackCaptures ++ [captured])
 
 declareDrawByAgreement :: GameState -> GameState
 declareDrawByAgreement gs = gs {gsResult = DrawByAgreement}
