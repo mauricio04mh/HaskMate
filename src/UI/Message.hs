@@ -9,8 +9,8 @@ formatStateMessage :: GameState -> String
 formatStateMessage gs =
   case gsResult gs of
     Ongoing -> "Turno de " ++ show (gsActiveColor gs)
-    Checkmate color -> "¡Jaque mate para " ++ show color ++ "! Presiona 'r' para reiniciar."
-    DrawBy50Moves -> "Tablas por regla de 50 jugadas. Presiona 'r' para reiniciar."
-    DrawByRepetition -> "Tablas por repetición. Presiona 'r' para reiniciar."
-    Stalemate -> "Ahogado. Presiona 'r' para reiniciar."
-    DrawByAgreement -> "Acuerdo. Presiona 'r' para reiniciar."
+    Checkmate color -> "¡Jaque mate para " ++ show color ++ "!\nPresiona R para reiniciar."
+    DrawBy50Moves -> "Tablas por regla de 50 jugadas.\nPresiona R para reiniciar."
+    DrawByRepetition -> "Tablas por repetición.\nPresiona R para reiniciar."
+    Stalemate -> "Ahogado.\nPresiona R para reiniciar."
+    DrawByAgreement -> "Acuerdo.\nPresiona R para reiniciar."

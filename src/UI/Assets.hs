@@ -51,12 +51,12 @@ dynamicImageSize dyn =
 
 spriteFiles :: [(SpriteKey, FilePath)]
 spriteFiles =
-  [ ((White, King), "assets/white_king.png"),
-    ((White, Queen), "assets/white_queen.png"),
-    ((White, Rook), "assets/white_rook.png"),
-    ((White, Bishop), "assets/white_bishop.png"),
-    ((White, Knight), "assets/white_knight.png"),
-    ((White, Pawn), "assets/white_pawn.png"),
+  [ ((White, King), "assets/white_filled_king.png"),
+    ((White, Queen), "assets/white_filled_queen.png"),
+    ((White, Rook), "assets/white_filled_rook.png"),
+    ((White, Bishop), "assets/white_filled_bishop.png"),
+    ((White, Knight), "assets/white_filled_knight.png"),
+    ((White, Pawn), "assets/white_filled_pawn.png"),
     ((Black, King), "assets/black_king.png"),
     ((Black, Queen), "assets/black_queen.png"),
     ((Black, Rook), "assets/black_rook.png"),
