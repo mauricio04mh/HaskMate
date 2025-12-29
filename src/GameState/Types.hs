@@ -11,7 +11,7 @@ where
 import qualified Data.Map.Strict as Map
 
 import Board.Core (Board, CastlingRights (..), emptyBoard)
-import Piece (Color (Black, White))
+import Piece (Color (Black, White), Piece)
 import Position (Position)
 
 data Result
@@ -33,7 +33,9 @@ data GameState = GameState
     gsHalfmoveClock :: Int,
     gsFullmoveNumber :: Int,
     gsResult :: Result,
-    gsPositionCounts :: Map.Map PositionKey Int
+    gsPositionCounts :: Map.Map PositionKey Int,
+    gsCapturedByWhite :: [Piece],
+    gsCapturedByBlack :: [Piece]
   }
   deriving (Eq, Show)
 
@@ -55,7 +57,9 @@ initialGameState =
             gsHalfmoveClock = 0,
             gsFullmoveNumber = 1,
             gsResult = Ongoing,
-            gsPositionCounts = Map.empty
+            gsPositionCounts = Map.empty,
+            gsCapturedByWhite = [],
+            gsCapturedByBlack = []
           }
       startKey =
         positionKey
