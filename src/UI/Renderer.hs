@@ -218,14 +218,15 @@ drawGraveyardPanel style x y w h =
 
 drawGraveyardSign :: GraveyardStyle -> Float -> Float -> Float -> Float -> Picture
 drawGraveyardSign style x y w h =
-  let baseScale = 0.12
+  let baseScale = 0.19
       label = gyLabel style
       maxWidth = max 10 (w - 20)
       rawWidth = fromIntegral (length label) * 100 * baseScale
       textScale = min baseScale (maxWidth / rawWidth)
       labelWidth = fromIntegral (length label) * 100 * textScale
-      labelX = x - labelWidth / 2
-      labelY = y - (h * 0.3)
+      textHeight = 100 * textScale
+      labelX = x - labelWidth / 2 + min 12 (w * 0.08)
+      labelY = y - (textHeight / 2)
    in pictures
         [ translate x y $ color (gySignColor style) $ rectangleSolid (w - 12) h,
           translate labelX labelY $
@@ -248,7 +249,15 @@ drawMessage state =
   let (width, height) = uiWindowSize state
       x = -width / 2 + 20
       y = -height / 2 + 20
-   in translate x y $
-        scale 0.15 0.15 $
-          color (makeColorI 255 255 255 255) $
-            text (fromMaybe (formatStateMessage (uiGameState state)) (uiMessage state))
+      messageText = fromMaybe (formatStateMessage (uiGameState state)) (uiMessage state)
+      messageLines = lines messageText
+      textScale = 0.2
+      lineHeight = 120 * textScale
+      linePictures =
+        [ translate x (y + fromIntegral idx * lineHeight) $
+            scale textScale textScale $
+              color (makeColorI 255 255 255 255) $
+                text line
+          | (idx, line) <- zip [0 :: Int ..] messageLines
+        ]
+   in pictures linePictures
