@@ -12,17 +12,15 @@ module GameState.Validation
   )
 where
 
-import Data.Maybe (listToMaybe, mapMaybe)
-
 import Board.Core (Board, cellPiece, cellPosition)
 import Board.Query (boardPieceAt)
+import Data.Maybe (listToMaybe, mapMaybe)
+import GameState.Types (toggleColor)
 import Piece (Color (Black, White), PieceType (..), getPieceColor, getPieceType)
 import Position (File (..), Position (..), Rank (..))
 
-import GameState.Types (toggleColor)
-
 isKingInCheck :: Board -> Color -> Bool
-isKingInCheck board color = boardIsInCheck board color
+isKingInCheck = boardIsInCheck
 
 boardIsInCheck :: Board -> Color -> Bool
 boardIsInCheck board color =
