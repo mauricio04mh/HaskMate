@@ -23,6 +23,8 @@ main = hspec $ do
       evaluate (initialGameState {gsResult = Checkmate Black}) `shouldBe` negate mateScore
     it "draw is zero" $
       evaluate (initialGameState {gsResult = DrawByAgreement}) `shouldBe` 0
+    it "insufficient material is zero" $
+      evaluate (initialGameState {gsResult = DrawByInsufficientMaterial}) `shouldBe` 0
   describe "repetition draw" $ do
     it "detects threefold repetition (Nf3 Nf6 Ng1 Ng8 x2)" $ do
       let Right start = parseFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -40,6 +42,17 @@ main = hspec $ do
           p7 = m 6 3 7 1 p6
           p8 = m 6 6 7 8 p7
       gsResult p8 `shouldBe` DrawByRepetition
+  describe "insufficient material draw" $ do
+    it "detects king vs king" $ do
+      let Right start = parseFEN "8/8/8/8/8/8/8/K6k w - - 0 1"
+          move = Move (Position (File 1) (Rank 1)) (Position (File 1) (Rank 2)) Nothing
+          nextState = fromJust (applyMove start move)
+      gsResult nextState `shouldBe` DrawByInsufficientMaterial
+    it "detects same-color bishops" $ do
+      let Right start = parseFEN "5b1k/8/8/8/8/8/8/2B1K3 w - - 0 1"
+          move = Move (Position (File 5) (Rank 1)) (Position (File 5) (Rank 2)) Nothing
+          nextState = fromJust (applyMove start move)
+      gsResult nextState `shouldBe` DrawByInsufficientMaterial
 
 perftCases :: Spec
 perftCases = do

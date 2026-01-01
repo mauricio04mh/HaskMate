@@ -27,5 +27,3 @@ main = do
     (pure . drawUI)
     handleEvent
     stepSimulation
-
--- TODO : IMPLEMENTAR EMPATE POR MATERIAL INSUFICIENTE

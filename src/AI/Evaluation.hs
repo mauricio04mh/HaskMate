@@ -17,6 +17,7 @@ evaluate gameState =
     Checkmate winner -> mateScoreFor winner
     DrawBy50Moves -> 0
     DrawByRepetition -> 0
+    DrawByInsufficientMaterial -> 0
     Stalemate -> 0
     DrawByAgreement -> 0
     Ongoing ->

@@ -114,12 +114,85 @@ determineResult :: GameState -> Board -> Color -> Color -> Int -> Int -> Result
 determineResult state nextBoard moverColor nextColor nextHalfmove repetitionCount
   | not opponentHasMoves && opponentInCheck = Checkmate moverColor
   | not opponentHasMoves = Stalemate
+  | isInsufficientMaterial nextBoard = DrawByInsufficientMaterial
   | repetitionCount >= 3 = DrawByRepetition
   | nextHalfmove >= 100 = DrawBy50Moves
   | otherwise = Ongoing
   where
     opponentHasMoves = hasLegalMoves state nextColor
     opponentInCheck = boardIsInCheck nextBoard nextColor
+
+isInsufficientMaterial :: Board -> Bool
+isInsufficientMaterial board
+  | hasMajor white || hasMajor black = False
+  | isOnlyKing white && isOnlyKing black = True
+  | isOnlyKing white && isSingleMinor black = True
+  | isOnlyKing black && isSingleMinor white = True
+  | isOnlyKing white && isTwoKnights black = True
+  | isOnlyKing black && isTwoKnights white = True
+  | isOneMinorEach =
+      case (bishopPositions white, knightCount white, bishopPositions black, knightCount black) of
+        ([whiteBishop], 0, [blackBishop], 0) -> sameSquareColor whiteBishop blackBishop
+        ([], 1, [], 1) -> True
+        _ -> False
+  | otherwise = False
+  where
+    white = materialSummary board White
+    black = materialSummary board Black
+    isOneMinorEach = minorCount white == 1 && minorCount black == 1
+
+data MaterialSummary = MaterialSummary
+  { pawnCount :: Int,
+    rookCount :: Int,
+    queenCount :: Int,
+    bishopPositions :: [Position],
+    knightCount :: Int
+  }
+
+materialSummary :: Board -> Color -> MaterialSummary
+materialSummary board color =
+  let pieces = piecePositions board color
+      pawns = countType Pawn pieces
+      rooks = countType Rook pieces
+      queens = countType Queen pieces
+      bishops = [pos | (pos, piece) <- pieces, getPieceType piece == Bishop]
+      knights = countType Knight pieces
+   in MaterialSummary
+        { pawnCount = pawns,
+          rookCount = rooks,
+          queenCount = queens,
+          bishopPositions = bishops,
+          knightCount = knights
+        }
+
+countType :: PieceType -> [(Position, Piece)] -> Int
+countType pieceType pieces =
+  length [() | (_, piece) <- pieces, getPieceType piece == pieceType]
+
+hasMajor :: MaterialSummary -> Bool
+hasMajor summary =
+  pawnCount summary > 0 || rookCount summary > 0 || queenCount summary > 0
+
+minorCount :: MaterialSummary -> Int
+minorCount summary =
+  length (bishopPositions summary) + knightCount summary
+
+isOnlyKing :: MaterialSummary -> Bool
+isOnlyKing summary = minorCount summary == 0
+
+isSingleMinor :: MaterialSummary -> Bool
+isSingleMinor summary = minorCount summary == 1
+
+isTwoKnights :: MaterialSummary -> Bool
+isTwoKnights summary = knightCount summary == 2 && null (bishopPositions summary)
+
+sameSquareColor :: Position -> Position -> Bool
+sameSquareColor posA posB =
+  squareColorIndex posA == squareColorIndex posB
+
+squareColorIndex :: Position -> Int
+squareColorIndex pos =
+  (fileIndex (posFile pos) + rankIndex (posRank pos)) `mod` 2
 
 isEnPassantCapture :: Piece -> Position -> Position -> Maybe Position -> Bool
 isEnPassantCapture piece from to target =

@@ -19,6 +19,7 @@ data Result
   | Checkmate Color
   | DrawBy50Moves
   | DrawByRepetition
+  | DrawByInsufficientMaterial
   | Stalemate
   | DrawByAgreement
   deriving (Eq, Show)
