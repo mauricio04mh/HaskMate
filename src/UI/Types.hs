@@ -57,7 +57,7 @@ initialUIState assets =
     }
 
 defaultAICooldown :: Float
-defaultAICooldown = 0.7
+defaultAICooldown = 2.0
 
 uiSquareSize :: UIState -> Float
 uiSquareSize state =

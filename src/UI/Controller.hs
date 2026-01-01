@@ -18,13 +18,16 @@ import GameState
     gsActiveColor,
     gsBoard,
     gsResult,
+    isKingInCheck,
     isLegalMove,
+    toggleColor,
   )
 import GameState.MoveGen (generateMovesForPiece)
 import Graphics.Gloss.Interface.IO.Game (Event (..), Key (..), KeyState (..), MouseButton (..), SpecialKey (..))
 import Move (Move (..))
 import Piece (Piece, PieceType (..), getPieceColor)
 import Position (File (..), Position (..), Rank (..))
+import System.CPUTime (getCPUTime)
 import Text.Printf (printf)
 import UI.Coordinates (screenToPosition)
 import UI.Message (formatStateMessage)
@@ -158,15 +161,27 @@ performAIMove :: UIState -> IO UIState
 performAIMove state =
   case controllerForTurn state of
     AI depth -> do
+      start <- getCPUTime
       (mMove, stats) <- minimaxWithStats depth (uiGameState state)
+      end <- getCPUTime
+      let thinkSeconds = realToFrac (max 0 (end - start)) / 1e12 :: Float
+          nextCooldown = defaultAICooldown + thinkSeconds
       case mMove of
         Nothing ->
-          pure
-            state
-              { uiMessage = Just "IA sin movimientos",
-                uiIsThinking = False,
-                uiAICooldown = defaultAICooldown
-              }
+          let active = gsActiveColor (uiGameState state)
+              board = gsBoard (uiGameState state)
+              result =
+                if isKingInCheck board active
+                  then Checkmate (toggleColor active)
+                  else Stalemate
+              newGame = (uiGameState state) {gsResult = result}
+           in pure
+                state
+                  { uiGameState = newGame,
+                    uiMessage = Just (formatStateMessage newGame),
+                    uiIsThinking = False,
+                    uiAICooldown = nextCooldown
+                  }
         Just move ->
           case applyMove (uiGameState state) move of
             Nothing ->
@@ -174,7 +189,7 @@ performAIMove state =
                 state
                   { uiMessage = Just "Error: applyMove falló para la IA",
                     uiIsThinking = False,
-                    uiAICooldown = defaultAICooldown
+                    uiAICooldown = nextCooldown
                   }
             Just newGame ->
               let cleared =
@@ -183,8 +198,11 @@ performAIMove state =
                         uiSelection = Nothing,
                         uiPossibleMoves = []
                       }
-                  msg = formatAIMoveMessage move stats
-               in pure $ cleared {uiMessage = Just msg, uiIsThinking = False, uiAICooldown = defaultAICooldown}
+                  msg =
+                    case gsResult newGame of
+                      Ongoing -> formatAIMoveMessage move stats
+                      _ -> formatStateMessage newGame
+               in pure $ cleared {uiMessage = Just msg, uiIsThinking = False, uiAICooldown = nextCooldown}
     Human -> pure $ state {uiIsThinking = False}
 
 formatAIMoveMessage :: Move -> SearchStats -> String
@@ -291,8 +309,8 @@ isAIController _ = False
 controllersForOption :: Char -> Maybe (Controller, Controller)
 controllersForOption '1' = Just (Human, Human)
 controllersForOption '2' = Just (Human, AI 7)
-controllersForOption '3' = Just (AI 3, Human)
-controllersForOption '4' = Just (AI 7, AI 7)
+controllersForOption '3' = Just (AI 7, Human)
+controllersForOption '4' = Just (AI 6, AI 1)
 controllersForOption _ = Nothing
 
 aiTurnPrompt :: UIState -> String
